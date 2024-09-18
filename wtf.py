@@ -51,3 +51,7 @@ def main():
             print(f"Command failed with error: {e}")
     else:
         print("Command not executed.")
+
+if __name__ == "__main__":
+    main()
+
