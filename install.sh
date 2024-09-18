@@ -16,11 +16,26 @@ sudo cp ./wtf.py /usr/bin/wtf
 echo "Please enter your GROQ API key:"
 read api_key
 
-# Set the input as an environment variable
+# Determine which shell configuration file to use
+if [ -n "$BASH_VERSION" ]; then
+    config_file="$HOME/.bashrc"
+elif [ -n "$ZSH_VERSION" ]; then
+    config_file="$HOME/.zshrc"
+else
+    echo "Unsupported shell. Please manually add the export command to your shell's configuration file."
+    exit 1
+fi
+
+# Add the export command to the shell configuration file
+echo "export GROQ_API_KEY=\"$api_key\"" >> "$config_file"
+
+# Set the variable for the current session
 export GROQ_API_KEY="$api_key"
 
-# Optionally, confirm the variable has been set
+# Confirm the variable has been set
 echo "GROQ_API_KEY has been set to: $GROQ_API_KEY"
+echo "The export command has been added to $config_file"
+echo "Please restart your terminal or run 'source $config_file' for the change to take effect in new sessions."
 
 # Check if the copy was successful
 if [ $? -eq 0 ]; then
