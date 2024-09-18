@@ -13,7 +13,7 @@ chmod +x ./wtf.py
 sudo cp ./wtf.py /usr/bin/wtf
 
 # Prompt the user for input
-echo "Please enter your GROQ API key:"
+echo "Please enter your Sambanova API key:"
 read api_key
 
 # Determine which shell configuration file to use
@@ -27,13 +27,13 @@ else
 fi
 
 # Add the export command to the shell configuration file
-echo "export GROQ_API_KEY=\"$api_key\"" >> "$config_file"
+echo "export SAMBANOVA_API_KEY=\"$api_key\"" >> "$config_file"
 
 # Set the variable for the current session
 export GROQ_API_KEY="$api_key"
 
 # Confirm the variable has been set
-echo "GROQ_API_KEY has been set to: $GROQ_API_KEY"
+echo "SAMBANOVA_API_KEY has been set to: $SAMBANOVA_API_KEY"
 echo "The export command has been added to $config_file"
 echo "Please restart your terminal or run 'source $config_file' for the change to take effect in new sessions."
 

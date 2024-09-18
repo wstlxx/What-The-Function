@@ -6,10 +6,10 @@ import requests
 import subprocess
 import os
 
-API_KEY = os.getenv("GROQ_API_KEY")
+API_KEY = os.getenv("SAMBANOVA_API_KEY")
 
 # Replace with your OpenAI-compatible API endpoint
-API_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+API_ENDPOINT = "https://api.sambanova.ai/v1/chat/completions"
 
 def get_command(prompt):
     headers = {
@@ -18,7 +18,7 @@ def get_command(prompt):
     }
 
     data = {
-        "model": "llama3-8b-8192",  # or whatever model your API supports
+        "model": "Meta-Llama-3.1-8B-Instruct",  # or whatever model your API supports
         "messages": [
             {"role": "system", "content": "You are a helpful assistant that provides Linux commands. You give command directly without explain or anything else since yyour response should be used directly as command to send. no brackets or quotation marks"},
             {"role": "user", "content": f"What's the Linux command for: {prompt}"}

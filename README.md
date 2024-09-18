@@ -2,7 +2,7 @@
 Simple prompt, simple command. Stay simple, stay naive.
 
 # Get started
-you will need your groq api key which can be obtained from https://console.groq.com/keys
+you will need your sambanova api key which can be obtained from https://cloud.sambanova.ai/apis
 ## clone the repo
 ```
 git clone https://github.com/wstlxx/What-The-Function.git && cd What-The-Function
