@@ -12,17 +12,15 @@ chmod +x ./wtf.py
 # Copy the script to /usr/bin/wtf (requires sudo)
 sudo cp ./wtf.py /usr/bin/wtf
 
-# Get the API key from the user
-read -s -p "Enter your GROQ API key: " GROQ_API_KEY
+# Prompt the user for input
+echo "Please enter your GROQ API key:"
+read api_key
 
-# Set the system-wide environment variable
-sudo echo "$GROQ_API_KEY" >> /etc/environment
+# Set the input as an environment variable
+export GROQ_API_KEY="$api_key"
 
-# Reload the environment
-source /etc/environment
-
-# Check if the variable was set successfully
-echo "GROQ_API_KEY is now set to $GROQ_API_KEY"
+# Optionally, confirm the variable has been set
+echo "GROQ_API_KEY has been set to: $GROQ_API_KEY"
 
 # Check if the copy was successful
 if [ $? -eq 0 ]; then
