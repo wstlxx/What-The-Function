@@ -30,7 +30,7 @@ fi
 echo "export SAMBANOVA_API_KEY=\"$api_key\"" >> "$config_file"
 
 # Set the variable for the current session
-export GROQ_API_KEY="$api_key"
+export SAMBANOVA_API_KEY="$api_key"
 
 # Confirm the variable has been set
 echo "SAMBANOVA_API_KEY has been set to: $SAMBANOVA_API_KEY"
