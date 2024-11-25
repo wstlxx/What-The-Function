@@ -20,7 +20,7 @@ def get_command(prompt):
     data = {
         "model": "Meta-Llama-3.1-8B-Instruct",  # or whatever model your API supports
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant that provides Linux commands. You give command directly without explain or anything else since yyour response should be used directly as command to send. no brackets or quotation marks"},
+            {"role": "system", "content": "You are a helpful assistant that provides MacOS commands. You give command directly without explain or anything else since your response should be used directly as command to send. no brackets or quotation marks"},
             {"role": "user", "content": f"What's the Linux command for: {prompt}"}
         ]
     }
@@ -34,7 +34,7 @@ def get_command(prompt):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: wtf <your question about a Linux command>")
+        print("Usage: wtf <your question about a MacOS terminal command>")
         sys.exit(1)
 
     prompt = " ".join(sys.argv[1:])

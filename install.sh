@@ -9,16 +9,23 @@ fi
 # Make the script executable
 chmod +x ./wtf.py
 
-# Copy the script to /usr/bin/wtf (requires sudo)
-sudo cp ./wtf.py /usr/bin/wtf
+# Define the target installation directory
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  target_dir="/usr/local/bin"
+else
+  target_dir="/usr/bin"
+fi
+
+# Copy the script to the target directory (requires sudo)
+sudo cp ./wtf.py "$target_dir/wtf"
 
 # Prompt the user for input
 echo "Please enter your Sambanova API key:"
-read api_key
+read -r api_key
 
 # Determine which shell configuration file to use
 if [ -n "$BASH_VERSION" ]; then
-    config_file="$HOME/.bashrc"
+    config_file="$HOME/.bash_profile"  # macOS uses .bash_profile by default
 elif [ -n "$ZSH_VERSION" ]; then
     config_file="$HOME/.zshrc"
 else
@@ -39,7 +46,7 @@ echo "Please restart your terminal or run 'source $config_file' for the change t
 
 # Check if the copy was successful
 if [ $? -eq 0 ]; then
-  echo "Successfully installed wtf script to /usr/bin/wtf."
+  echo "Successfully installed wtf script to $target_dir/wtf."
 else
-  echo "Error: Failed to copy wtf script to /usr/bin/wtf."
+  echo "Error: Failed to copy wtf script to $target_dir/wtf."
 fi
