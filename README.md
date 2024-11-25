@@ -13,7 +13,7 @@ chmod +x ./install.sh && ./install.sh
 ```
 ## refresh the terminal
 ```
-source ~/.bashrc
+source ~/.zshrc
 ```
 ---
 # Usage
