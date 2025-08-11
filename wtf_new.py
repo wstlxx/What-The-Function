@@ -7,6 +7,7 @@ import subprocess
 import json
 import tty
 import termios
+import readline
 
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "wtf")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
@@ -117,6 +118,22 @@ def get_command(prompt):
     except (KeyError, IndexError):
         return ["Error: Unexpected response format from API."]
 
+def edit_and_execute_command(command):
+    """Allows editing and executing a command."""
+    def prefill_input():
+        readline.insert_text(command)
+    readline.set_startup_hook(prefill_input)
+    try:
+        edited_command = input("Edit command: ")
+    finally:
+        readline.set_startup_hook()
+    if edited_command:
+        print(f"Executing: {edited_command}")
+        try:
+            subprocess.run(edited_command, shell=True, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e}")
+
 def upgrade_script():
     print("Upgrading wtf...")
     try:
@@ -165,7 +182,7 @@ def main():
     current_index = 0
     while True:
         print(f"Suggested command ({current_index + 1}/{len(commands)}): {commands[current_index]}")
-        print("Execute? [Y/n/p/q]: ", end='', flush=True)
+        print("Execute? [Y/n/p/q/e]: ", end='', flush=True)
         user_input = get_single_char().lower()
         print()
 
@@ -182,8 +199,11 @@ def main():
         elif user_input == 'q':
             print("Command not executed.")
             break
+        elif user_input == 'e':
+            edit_and_execute_command(commands[current_index])
+            break
         else:
-            print("Invalid input. Please use Y/n/p/q.")
+            print("Invalid input. Please use Y/n/p/q/e.")
 
 if __name__ == "__main__":
     main()
