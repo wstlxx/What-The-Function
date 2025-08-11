@@ -28,10 +28,12 @@ def initialize_config():
 
     api_endpoint = input("Enter the API endpoint (e.g., https://openrouter.ai/api/v1/chat/completions): ")
     api_key = input("Enter the API key: ")
+    model = input("Enter the model (default: z-ai/glm-4.5-air:free): ") or "z-ai/glm-4.5-air:free"
 
     config = {
         "api_endpoint": api_endpoint,
         "api_key": api_key,
+        "model": model,
         "preferences": []
     }
 
@@ -50,10 +52,21 @@ def remember_preference(preference):
     save_config(config)
     print(f"Preference saved: {preference}")
 
+def set_model(model):
+    """Sets the model in the config file."""
+    config = load_config()
+    if not config:
+        print("Please run 'wtf --init' first.")
+        sys.exit(1)
+    config["model"] = model
+    save_config(config)
+    print(f"Model set to: {model}")
+
 def get_command(prompt):
     config = load_config()
     api_key = config.get("api_key")
     api_endpoint = config.get("api_endpoint")
+    model = config.get("model", "z-ai/glm-4.5-air:free")
     preferences = config.get("preferences", [])
 
     if not api_key or not api_endpoint:
@@ -72,7 +85,7 @@ def get_command(prompt):
         system_prompt += "\n\nPlease also follow these user-provided instructions:\n- " + "\n- ".join(preferences)
 
     data = {
-        "model": "mistralai/mistral-7b-instruct",
+        "model": model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"What's the Linux command for: {prompt}"}
@@ -118,10 +131,13 @@ def main():
         elif sys.argv[1] in ['-r', '--remember'] and len(sys.argv) > 2:
             remember_preference(" ".join(sys.argv[2:]))
             sys.exit(0)
+        elif sys.argv[1] == '--set-model' and len(sys.argv) > 2:
+            set_model(sys.argv[2])
+            sys.exit(0)
 
     if len(sys.argv) < 2:
         print("Usage: wtf <your question about a Linux command>")
-        print("Or: wtf --init | --upgrade | --remember <preference>")
+        print("Or: wtf --init | --upgrade | --remember <preference> | --set-model <model_name>")
         sys.exit(1)
 
     prompt = " ".join(sys.argv[1:])
