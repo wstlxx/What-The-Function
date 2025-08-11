@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # Check if the script exists in the current directory
-if [ ! -f "./wtf.py" ]; then
-  echo "Error: ./wtf.py not found in the current directory."
+if [ ! -f "./wtf_new.py" ]; then
+  echo "Error: ./wtf_new.py not found in the current directory."
   exit 1
 fi
 
 # Make the script executable
-chmod +x ./wtf.py
+chmod +x ./wtf_new.py
 
 # Copy the script to /usr/bin/wtf (requires sudo)
-sudo cp ./wtf.py /usr/bin/wtf
+sudo cp ./wtf_new.py /usr/bin/wtf
 
 # Check if the copy was successful
 if [ $? -eq 0 ]; then
