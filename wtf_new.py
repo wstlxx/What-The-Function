@@ -150,9 +150,9 @@ def main():
     current_index = 0
     while True:
         print(f"Suggested command ({current_index + 1}/{len(commands)}): {commands[current_index]}")
-        user_input = input("Execute? (y) | Next? (n) | Previous? (p) | Quit? (q): ").lower()
+        user_input = input("Execute? [Y/n/p/q]: ").lower()
 
-        if user_input == 'y':
+        if user_input in ('y', ''):
             try:
                 subprocess.run(commands[current_index], shell=True, check=True)
             except subprocess.CalledProcessError as e:
@@ -166,7 +166,7 @@ def main():
             print("Command not executed.")
             break
         else:
-            print("Invalid input. Please use y/n/p/q.")
+            print("Invalid input. Please use Y/n/p/q.")
 
 if __name__ == "__main__":
     main()
