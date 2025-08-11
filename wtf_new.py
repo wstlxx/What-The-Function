@@ -5,6 +5,8 @@ import sys
 import requests
 import subprocess
 import json
+import tty
+import termios
 
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "wtf")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
@@ -61,6 +63,19 @@ def set_model(model):
     config["model"] = model
     save_config(config)
     print(f"Model set to: {model}")
+
+def get_single_char():
+    """
+    Waits for a single keypress on stdin and returns the character.
+    """
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        char = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return char
 
 def get_command(prompt):
     config = load_config()
@@ -150,9 +165,11 @@ def main():
     current_index = 0
     while True:
         print(f"Suggested command ({current_index + 1}/{len(commands)}): {commands[current_index]}")
-        user_input = input("Execute? [Y/n/p/q]: ").lower()
+        print("Execute? [Y/n/p/q]: ", end='', flush=True)
+        user_input = get_single_char().lower()
+        print()
 
-        if user_input in ('y', ''):
+        if user_input in ('y', '\r', '\n'):
             try:
                 subprocess.run(commands[current_index], shell=True, check=True)
             except subprocess.CalledProcessError as e:
