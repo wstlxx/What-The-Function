@@ -134,6 +134,33 @@ def edit_and_execute_command(command):
         except subprocess.CalledProcessError as e:
             print(f"Command failed with error: {e}")
 
+def uninstall():
+    """Removes wtf and all its configuration."""
+    if os.geteuid() != 0:
+        print("Please run the uninstall command with sudo: sudo wtf --uninstall")
+        sys.exit(1)
+
+    print("This will remove wtf and all its configuration.")
+    confirm = input("Are you sure you want to uninstall? (y/n): ").lower()
+    if confirm != 'y':
+        print("Uninstallation cancelled.")
+        return
+
+    # Remove config directory
+    config_dir = os.path.join(os.path.expanduser("~"), ".config", "wtf")
+    if os.path.exists(config_dir):
+        import shutil
+        shutil.rmtree(config_dir)
+        print(f"Removed configuration directory: {config_dir}")
+
+    # Remove the script itself
+    script_path = "/usr/bin/wtf"
+    if os.path.exists(script_path):
+        os.remove(script_path)
+        print(f"Removed script: {script_path}")
+
+    print("wtf has been successfully uninstalled.")
+
 def upgrade_script():
     print("Upgrading wtf...")
     try:
@@ -166,10 +193,13 @@ def main():
         elif sys.argv[1] == '--set-model' and len(sys.argv) > 2:
             set_model(sys.argv[2])
             sys.exit(0)
+        elif sys.argv[1] == '--uninstall':
+            uninstall()
+            sys.exit(0)
 
     if len(sys.argv) < 2:
         print("Usage: wtf <your question about a Linux command>")
-        print("Or: wtf --init | --upgrade | --remember <preference> | --set-model <model_name>")
+        print("Or: wtf --init | --upgrade | --remember <preference> | --set-model <model_name> | --uninstall")
         sys.exit(1)
 
     prompt = " ".join(sys.argv[1:])
