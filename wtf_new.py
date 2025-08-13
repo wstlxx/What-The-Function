@@ -118,6 +118,44 @@ def get_command(prompt):
     except (KeyError, IndexError):
         return ["Error: Unexpected response format from API."]
 
+def get_answer(prompt):
+    """Gets a direct answer to a question."""
+    config = load_config()
+    api_key = config.get("api_key")
+    api_endpoint = config.get("api_endpoint")
+    model = config.get("model", "z-ai/glm-4.5-air:free")
+
+    if not api_key or not api_endpoint:
+        print("API key or endpoint not found. Please run 'wtf --init' to configure the tool.")
+        sys.exit(1)
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/wstlxx/What-The-Function",
+        "X-Title": "What The Function"
+    }
+
+    system_prompt = "You are a helpful assistant. Answer the following question directly and concisely in plain text. Do not use markdown or any special formatting. The answer should be suitable for display in a command-line interface."
+
+    data = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    try:
+        response = requests.post(api_endpoint, headers=headers, json=data)
+        response.raise_for_status()
+        answer = response.json()['choices'][0]['message']['content'].strip()
+        return answer
+    except requests.exceptions.RequestException as e:
+        return f"Error: API request failed - {e}"
+    except (KeyError, IndexError):
+        return "Error: Unexpected response format from API."
+
 def edit_and_execute_command(command):
     """Allows editing and executing a command."""
     def prefill_input():
@@ -196,10 +234,15 @@ def main():
         elif sys.argv[1] == '--uninstall':
             uninstall()
             sys.exit(0)
+        elif sys.argv[1] == '--ask' and len(sys.argv) > 2:
+            prompt = " ".join(sys.argv[2:])
+            answer = get_answer(prompt)
+            print(answer)
+            sys.exit(0)
 
     if len(sys.argv) < 2:
         print("Usage: wtf <your question about a Linux command>")
-        print("Or: wtf --init | --upgrade | --remember <preference> | --set-model <model_name> | --uninstall")
+        print("Or: wtf --init | --upgrade | --remember <preference> | --set-model <model_name> | --uninstall | --ask <question>")
         sys.exit(1)
 
     prompt = " ".join(sys.argv[1:])
