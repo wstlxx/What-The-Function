@@ -2,13 +2,20 @@
 
 import os
 import sys
+import platform
 import requests
 import subprocess
 import json
-import tty
-import termios
-import readline
+if platform.system() != "Windows":
+    import tty
+    import termios
+    import readline
+else:
+    # No equivalent for tty and termios needed for basic getch
+    # pyreadline can be an alternative for readline, but we'll keep it simple
+    import msvcrt
 
+OS_NAME = platform.system()
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "wtf")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
@@ -68,15 +75,37 @@ def set_model(model):
 def get_single_char():
     """
     Waits for a single keypress on stdin and returns the character.
+    Cross-platform implementation.
     """
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setcbreak(sys.stdin.fileno())
-        char = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return char
+    if OS_NAME == 'Windows':
+        # Note: msvcrt.getch() returns a byte string
+        return msvcrt.getch().decode('utf-8', errors='ignore')
+    else:
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setcbreak(sys.stdin.fileno())
+            char = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return char
+
+def get_os_specific_prompts():
+    if OS_NAME == "Windows":
+        return {
+            "system_prompt": "You are a helpful assistant that provides 3 distinct Windows PowerShell commands. You give command directly without explain or anything else since your response should be used directly as command to send. no brackets or quotation marks, your response should be in format 'command 1\\ncommand 2\\ncommand 3'",
+            "user_prompt_template": "What's the Windows PowerShell command for: {prompt}"
+        }
+    elif OS_NAME == "Darwin":
+        return {
+            "system_prompt": "You are a helpful assistant that provides 3 distinct macOS commands. You give command directly without explain or anything else since your response should be used directly as command to send. no brackets or quotation marks, your response should be in format 'command 1\\ncommand 2\\ncommand 3'",
+            "user_prompt_template": "What's the macOS command for: {prompt}"
+        }
+    else: # Linux and other Unix-likes
+        return {
+            "system_prompt": "You are a helpful assistant that provides 3 distinct Linux commands. You give command directly without explain or anything else since your response should be used directly as command to send. no brackets or quotation marks, your response should be in format 'command 1\\ncommand 2\\ncommand 3'",
+            "user_prompt_template": "What's the Linux command for: {prompt}"
+        }
 
 def get_command(prompt):
     config = load_config()
@@ -96,7 +125,8 @@ def get_command(prompt):
         "X-Title": "What The Function"
     }
 
-    system_prompt = "You are a helpful assistant that provides 3 distinct Linux commands. You give command directly without explain or anything else since your response should be used directly as command to send. no brackets or quotation marks, your response should be in format 'command 1\\ncommand 2\\ncommand 3'"
+    prompts = get_os_specific_prompts()
+    system_prompt = prompts["system_prompt"]
     if preferences:
         system_prompt += "\n\nPlease also follow these user-provided instructions:\n- " + "\n- ".join(preferences)
 
@@ -104,7 +134,7 @@ def get_command(prompt):
         "model": model,
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"What's the Linux command for: {prompt}"}
+            {"role": "user", "content": prompts["user_prompt_template"].format(prompt=prompt)}
         ]
     }
 
@@ -158,6 +188,14 @@ def get_answer(prompt):
 
 def edit_and_execute_command(command):
     """Allows editing and executing a command."""
+    if OS_NAME == 'Windows':
+        print(f"Executing command directly (editing not supported on Windows): {command}")
+        try:
+            subprocess.run(command, shell=True, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e}")
+        return
+
     def prefill_input():
         readline.insert_text(command)
     readline.set_startup_hook(prefill_input)
@@ -174,6 +212,12 @@ def edit_and_execute_command(command):
 
 def uninstall():
     """Removes wtf and all its configuration."""
+    if OS_NAME == "Windows":
+        print("To uninstall wtf on Windows, please run the uninstall.bat script from the installation directory.")
+        print("The installation directory is typically %APPDATA%\\wtf")
+        sys.exit(0)
+
+    # For Linux and macOS
     if os.geteuid() != 0:
         print("Please run the uninstall command with sudo: sudo wtf --uninstall")
         sys.exit(1)
@@ -191,9 +235,16 @@ def uninstall():
         shutil.rmtree(config_dir)
         print(f"Removed configuration directory: {config_dir}")
 
+    # Determine the script path based on the OS
+    if OS_NAME == "Linux":
+        script_path = "/usr/bin/wtf"
+    elif OS_NAME == "Darwin":
+        script_path = "/usr/local/bin/wtf"
+    else:
+        script_path = None
+
     # Remove the script itself
-    script_path = "/usr/bin/wtf"
-    if os.path.exists(script_path):
+    if script_path and os.path.exists(script_path):
         os.remove(script_path)
         print(f"Removed script: {script_path}")
 
@@ -218,7 +269,11 @@ def upgrade_script():
         print(f"An error occurred during the upgrade: {e}")
 
 def main():
+    usage_string = "Usage: wtf <your question about a command>\nOr: wtf --init | --upgrade | --remember <preference> | --set-model <model_name> | --uninstall | --ask <question> | --help"
     if len(sys.argv) > 1:
+        if sys.argv[1] in ['-h', '--help']:
+            print(usage_string)
+            sys.exit(0)
         if sys.argv[1] == '--init':
             initialize_config()
             sys.exit(0)
@@ -241,8 +296,7 @@ def main():
             sys.exit(0)
 
     if len(sys.argv) < 2:
-        print("Usage: wtf <your question about a Linux command>")
-        print("Or: wtf --init | --upgrade | --remember <preference> | --set-model <model_name> | --uninstall | --ask <question>")
+        print(usage_string)
         sys.exit(1)
 
     prompt = " ".join(sys.argv[1:])

@@ -9,13 +9,29 @@ fi
 # Make the script executable
 chmod +x ./wtf_new.py
 
-# Copy the script to /usr/bin/wtf (requires sudo)
-sudo cp ./wtf_new.py /usr/bin/wtf
+# Determine the OS
+OS="$(uname)"
+INSTALL_PATH=""
+
+if [ "$OS" == "Linux" ]; then
+  INSTALL_PATH="/usr/bin/wtf"
+elif [ "$OS" == "Darwin" ]; then
+  INSTALL_PATH="/usr/local/bin/wtf"
+else
+  echo "Unsupported OS: $OS"
+  exit 1
+fi
+
+echo "Attempting to install wtf to $INSTALL_PATH"
+
+# Copy the script to the install path (requires sudo)
+sudo cp ./wtf_new.py "$INSTALL_PATH"
 
 # Check if the copy was successful
 if [ $? -eq 0 ]; then
-  echo "Successfully installed wtf script to /usr/bin/wtf."
+  echo "Successfully installed wtf script to $INSTALL_PATH."
   echo "Please run 'wtf --init' to configure the API endpoint and key."
 else
-  echo "Error: Failed to copy wtf script to /usr/bin/wtf."
+  echo "Error: Failed to copy wtf script to $INSTALL_PATH."
+  echo "Please ensure you have the necessary permissions (e.g., run with sudo if needed)."
 fi
