@@ -1,6 +1,44 @@
 @echo off
 setlocal enabledelayedexpansion
 
+echo Checking for dependencies...
+
+REM Check for Python
+where python >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Warning: Python is not installed or not in your PATH.
+    echo Please install Python to use this tool: https://www.python.org/downloads/
+    set /p "choice=Do you want to continue the installation anyway? (y/n): "
+    if /i "!choice!" neq "y" (
+        echo Installation aborted.
+        exit /b 1
+    )
+) else (
+    echo Python found.
+)
+
+REM Check for pip
+where pip >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Warning: pip is not installed or not in your PATH.
+    echo pip is required to install Python packages.
+    set /p "choice=Do you want to continue the installation anyway? (y/n): "
+    if /i "!choice!" neq "y" (
+        echo Installation aborted.
+        exit /b 1
+    )
+) else (
+    echo pip found.
+    echo Installing 'requests' package...
+    python -m pip install requests
+    if %errorlevel% neq 0 (
+        echo Warning: Failed to install 'requests' package. Please try again.
+    ) else (
+        echo 'requests' package installed successfully.
+    )
+)
+
+
 REM Installation script for wtf on Windows
 
 set WTF_DIR=%APPDATA%\wtf
